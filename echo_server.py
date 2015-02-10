@@ -11,7 +11,7 @@ try:
         server_socket.bind(address)
         server_socket.listen(1)
         connection, client_address = server_socket.accept()
-        buffersize = 32
+        buffersize = 16
         echomsg = connection.recv(buffersize)
         connection.sendall(echomsg)
         connection.shutdown(socket.SHUT_WR)

@@ -11,7 +11,7 @@ def clientmessage(msg):
     client_socket.connect(('127.0.0.1', 50000))
     client_socket.sendall(msg)
     client_socket.shutdown(socket.SHUT_WR)
-    buffersize = 32
+    buffersize = 16
     echomsg = client_socket.recv(buffersize)
     print echomsg
     client_socket.close()
