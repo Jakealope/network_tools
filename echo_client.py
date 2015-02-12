@@ -11,7 +11,7 @@ def clientmessage(msg):
     client_socket.connect(('127.0.0.1', 50000))
     client_socket.sendall(msg)
     client_socket.shutdown(socket.SHUT_WR)
-    buffsize = 32
+    buffsize = 4096
     response = ''
     done = False
     while not done:
