@@ -4,21 +4,30 @@ import socket
 import email.utils
 
 
-def response_ok():
-    date = email.utils.formatdate(usegmt=True)
-    code = u"HTTP/1.1 200 OK"
-    content_type = u"Content-Type: text/plain; charset=UTF-8"
-    response = u"{}\r\n{}\r\n{}\r\n\r\n".format(code, date, content_type)
-    response = response.encode('utf-8')
+def response_ok(request):
+    response_code = "HTTP/1.1 200 OK"
+    date = "Date: {}".format(email.utils.formatdate(usegmt=True))
+    headers = "Content-Type Text/HTML"
+    response = "{}\r\n{}\r\n{}\r\n\r\n".format(response_code, date, headers)
+    return response.encode('utf-8')
 
 
-def response_error():
-    pass
+def response_error(code, reason):
+    response_code = "HTTP/1.1 {} {}".format(code, reason)
+    date = "Date: {}".format(email.utils.formatdate(usegmt=True))
+    headers = "Content-Type:Text/HTML"
+    response = "{}\r\n{}\r\n{}\r\n\r\n".format(response_code, date, headers)
+    return response.encode('utf-8')
 
 
-def parse_request():
-    pass
-
+def parse_request(request):
+    request = request.split('\r\n')
+    first_line = request[0].split(' ')
+    if first_line[0] != "GET":
+        return response_error(405, "Request not allowed")
+    if first_line[2] != "HTTP/1.1":
+        return response_error(505, "Invalid protocol")
+    return response_ok(first_line[1])
 
 try:
     server_socket = socket.socket(
@@ -31,7 +40,7 @@ try:
     server_socket.listen(1)
     while True:
         connection, client_address = server_socket.accept()
-        buffersize = 32
+        buffersize = 4096
         response = ''
         done = False
         while not done:
@@ -39,9 +48,12 @@ try:
             if len(msg_part) < buffersize:
                 done = True
             response += msg_part
-        # connection.sendall(response)
-        # connection.shutdown(socket.SHUT_WR)
-        # connection.close()
+
+            response = parse_request(response)
+
+        connection.sendall(response)
+        connection.shutdown(socket.SHUT_WR)
+        connection.close()
 
 except KeyboardInterrupt:
     server_socket.close()
